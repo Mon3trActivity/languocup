@@ -124,6 +124,51 @@ button{font:inherit}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0ms!important;transition-duration:.01ms!important}.boot__logo,.boot__readout{opacity:1;filter:none}.site{transform:none}}
 
+
+/* ==========================================================
+   难度分级：左下角蓝色数字
+   ========================================================== */
+.cell-level{
+  position:absolute;
+  left:6px;
+  bottom:4px;
+  z-index:5;
+  color:#5eb8e8;
+  font-size:clamp(7px,1.1vmin,10px);
+  font-weight:700;
+  letter-spacing:.04em;
+  line-height:1;
+  pointer-events:none;
+  text-shadow:
+    0 0 6px rgba(94,184,232,.7),
+    0 1px 2px rgba(0,0,0,.9);
+  transition:color .3s ease,text-shadow .3s ease;
+}
+
+.cell.has-plate:hover .cell-level,
+.cell.has-plate:focus-visible .cell-level{
+  color:#8fd4ff;
+  text-shadow:
+    0 0 9px rgba(143,212,255,.95),
+    0 1px 2px rgba(0,0,0,.95);
+}
+
+.cell.has-plate.plate-active .cell-level{
+  color:#a8e0ff;
+  text-shadow:
+    0 0 9px rgba(168,224,255,.95),
+    0 1px 2px rgba(0,0,0,.95);
+}
+
+@media(max-width:700px){
+  .cell-level{
+    left:3px;
+    bottom:2px;
+    font-size:6px;
+    letter-spacing:0;
+  }
+}
+
 /* ==========================================================
    镀层（plated）词条系统
    ========================================================== */
@@ -376,22 +421,59 @@ function boardAudioSetup(){
  });
 }
 const CELL_COUNT=25,boardEl=document.getElementById('board'),drawBtn=document.getElementById('drawBtn');
+/* 5×5 表格的位置分级（行优先，共 25 个） */
+const LEVEL_MAP=[
+  1,3,5,2,4,
+  2,4,1,3,5,
+  3,5,2,4,1,
+  4,1,3,5,2,
+  5,2,4,1,3
+];
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function pickEntries(n){
-  const items=BINGO_DATA.filter(function(x){return x&&typeof x.title==='string'&&x.title.trim()}).map(function(x){
-    return{id:x.id,title:x.title.trim(),body:(x.body||'').trim(),plated:(x.plated||'').trim()}
+function pickEntries(levels){
+  // 按层级把词条分组
+  const byLevel={};
+  BINGO_DATA.forEach(function(x){
+    if(!x||typeof x.title!=='string'||!x.title.trim())return;
+    const lv=Math.min(5,Math.max(1,Number(x.level)||1));
+    const item={
+      id:x.id,
+      title:x.title.trim(),
+      body:(x.body||'').trim(),
+      plated:(x.plated||'').trim(),
+      level:lv
+    };
+    (byLevel[lv]=byLevel[lv]||[]).push(item);
   });
-  if(!items.length)return Array.from({length:n},function(){return{id:-1,title:'？',body:'',plated:''}});
-  const r=[];let p=[];
-  while(r.length<n){
-    if(!p.length){
-      p=shuffle(items.slice());
-      const last=r.length?r[r.length-1]:null;
-      if(p.length>1&&last&&p[0].id===last.id)[p[0],p[1]]=[p[1],p[0]];
+
+  // 为每个层级准备一个「打乱并循环」的池子
+  const pools={};
+  for(let lv=1;lv<=5;lv++){
+    const base=byLevel[lv]?shuffle(byLevel[lv].slice()):[];
+    const need=levels.filter(function(l){return l===lv}).length;
+    const full=[];
+    if(!base.length){
+      // 该层级没有词条，用占位符
+      for(let i=0;i<need;i++)full.push({id:-1,title:'？',body:'',plated:'',level:lv});
+    }else{
+      while(full.length<need){
+        const chunk=shuffle(base.slice());
+        if(full.length&&chunk.length>1&&chunk[0].id===full[full.length-1].id){
+          const t=chunk[0];chunk[0]=chunk[1];chunk[1]=t;
+        }
+        full.push.apply(full,chunk);
+      }
     }
-    r.push(p.shift());
+    pools[lv]=full;
   }
-  return r;
+
+  // 按每个格子的层级依次取词条
+  const ptr={1:0,2:0,3:0,4:0,5:0};
+  return levels.map(function(lv){
+    const pool=pools[lv];
+    const item=pool[ptr[lv]++]||{id:-1,title:'？',body:'',plated:'',level:lv};
+    return item;
+  });
 }
 function renderBoard(entries){
   const frag=document.createDocumentFragment();
@@ -420,6 +502,12 @@ function renderBoard(entries){
     back.firstChild.textContent=entry.body;
 
     cell.append(mark,front,back);
+
+        // ---- 左下角蓝色层级数字 ----
+    const levelTag=document.createElement('span');
+    levelTag.className='cell-level';
+    levelTag.textContent=String(entry.level||1);
+    cell.appendChild(levelTag);
 
     // ---- 镀层虚影 ----
     if(entry.plated){
@@ -467,5 +555,5 @@ function spawnRipple(cell,ev){
 function handleCellClick(cell,ev){playSound('click',.075);spawnRipple(cell,ev);cell.classList.remove('bounce');void cell.offsetWidth;cell.classList.add('bounce');const selected=cell.classList.toggle('selected');cell.setAttribute('aria-pressed',String(selected));updateSelectedCount();checkBingo()}
 function updateSelectedCount(){const n=boardEl.querySelectorAll('.selected').length;document.getElementById('selectedCount').textContent=String(n).padStart(2,'0')+' / 25'}
 function checkBingo(){const cells=[...boardEl.children],active=cells.map(c=>c.classList.contains('selected'));const patterns=[];for(let r=0;r<5;r++)patterns.push({cells:[0,1,2,3,4].map(c=>r*5+c),type:'row',pos:10+r*20});for(let c=0;c<5;c++)patterns.push({cells:[0,1,2,3,4].map(r=>r*5+c),type:'col',pos:10+c*20});patterns.push({cells:[0,6,12,18,24],type:'diag',angle:'45deg'},{cells:[4,8,12,16,20],type:'diag',angle:'-45deg'});const wins=patterns.filter(p=>p.cells.every(i=>active[i]));cells.forEach(c=>c.classList.remove('winning'));wins.forEach(w=>w.cells.forEach(i=>cells[i].classList.add('winning')));const layer=document.getElementById('bingoLines'),oldCount=layer.children.length;layer.replaceChildren(...wins.map(w=>{const line=document.createElement('i');line.className='bingo-line '+(w.type==='col'?'vertical':w.type==='diag'?'diagonal':'');if(w.type==='row')line.style.setProperty('--y',w.pos+'%');if(w.type==='col')line.style.setProperty('--x',w.pos+'%');if(w.type==='diag')line.style.setProperty('--angle',w.angle);return line}));if(wins.length>oldCount){const burst=document.getElementById('bingoBurst');burst.classList.remove('active');void burst.offsetWidth;burst.classList.add('active')}}
-function draw(){playSound('glitch',.07);const frame=document.querySelector('.board-frame');frame.classList.remove('drawing');void frame.offsetWidth;frame.classList.add('drawing');setTimeout(()=>frame.classList.remove('drawing'),780);renderBoard(pickEntries(CELL_COUNT));document.getElementById('bingoLines').replaceChildren();updateSelectedCount();document.getElementById('archiveId').textContent='BF-'+Math.floor(Math.random()*10000).toString().padStart(4,'0')}drawBtn.addEventListener('click',draw);draw();
+function draw(){playSound('glitch',.07);const frame=document.querySelector('.board-frame');frame.classList.remove('drawing');void frame.offsetWidth;frame.classList.add('drawing');setTimeout(()=>frame.classList.remove('drawing'),780);renderBoard(pickEntries(LEVEL_MAP));document.getElementById('bingoLines').replaceChildren();updateSelectedCount();document.getElementById('archiveId').textContent='BF-'+Math.floor(Math.random()*10000).toString().padStart(4,'0')}drawBtn.addEventListener('click',draw);draw();
 </script></body></html>

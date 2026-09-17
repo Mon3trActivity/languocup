@@ -64,7 +64,7 @@ window.BINGO_DATA = [
   
 
   /* ===== 3 级 / C 档 / 80 分（共 9 条） ===== */
-  { id: 15, level: 3, grade: "C", score: 80, title: "登峰造极", body: "以难度 n15 通关游戏" },
+  { id: 15, level: 3, grade: "C", score: 80, title: "登峰造极", body: "以难度 n12 通关游戏",plated:"以难度n15通关游戏"},
   { id: 16, level: 3, grade: "C", score: 80, title: "嚼嚼嚼",   body: "击杀 15 只猎犬 proto", tracker: { type: "counter", label: "已击杀猎犬 proto", unit: "只", target: 15, min: 0 } },
   { id: 17, level: 3, grade: "C", score: 80, title: "小苹果",   body: "先锋干员全程不被击倒", tracker: { type: "failure", label: "先锋击倒状态" } },
   { id: 18, level: 3, grade: "C", score: 80, title: "植物学家", body: "获得过至少 10 种自然物", plated: "获得过全部 12 种自然物", tracker: { type: "checklist", label: "自然物图鉴", options: BLACKFLOW_NATURAL_ITEMS, target: 10, platedTarget: 12 } },

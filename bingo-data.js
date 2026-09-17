@@ -51,16 +51,16 @@ window.BINGO_DATA = [
   { id: 4,  level: 5, grade: "A", score: 200, title: "大胃戴",   body: "生吃“玻利瓦尔，症结之核”、“洛伦茨，扰动之谬”或“卡德霍，黑流之源”", plated: "至多部署一名炎国干员（用以触发炎佑，其自身不能对敌方单位造成伤害）并通过结局" },
   { id: 5,  level: 5, grade: "A", score: 200, title: "主角",     body: "由阿米娅完成“玻利瓦尔，症结之核”、源阶方或“卡德霍，黑流之源”的击杀" },
   { id: 6,  level: 5, grade: "A", score: 200, title: "玉米晓夫", body: "本局中至少获得过 8 个回声玉米", plated: "至少获得过 11 个回声玉米" },
-  { id: 14, level: 4, grade: "B", score: 120, title: "致盲",           body: "只通过阻挡或装置反隐", tracker: { type: "failure", label: "反隐违规状态" } },
+  { id: 7, level: 4, grade: "B", score: 120, title: "致盲",           body: "只通过阻挡或装置反隐", tracker: { type: "failure", label: "反隐违规状态" } },
 
   /* ===== 4 级 / B 档 / 120 分（共 8 条） ===== */
-  { id: 7,  level: 4, grade: "B", score: 120, title: "礼帽",           body: "不在商店中选择选项“请坎诺特降价”", tracker: { type: "failure", label: "违规状态" } },
-  { id: 8,  level: 4, grade: "B", score: 120, title: "完美主义",       body: "全程完美作战（最终关卡除外）", plated: "全程没有在关卡内让目标生命值降低过", tracker: { type: "failure", label: "完美作战状态" } },
-  { id: 9,  level: 4, grade: "B", score: 120, title: "最是人间留不住", body: "至少碎过一颗霜晶树" },
-  { id: 10, level: 4, grade: "B", score: 120, title: "单兵计划",       body: "有一名干员同时拥有三种招募增益藏品的效果", plated: "有一名干员同时拥有四种招募增益藏品的效果" },
-  { id: 11, level: 4, grade: "B", score: 120, title: "不积跬步",       body: "探索过黑流树海中的至少 20 种不同类型节点", plated: "探索过黑流树海中的全部 22 种不同类型节点", tracker: { type: "checklist", label: "节点探索记录", options: BLACKFLOW_NODE_TYPES, target: 20, platedTarget: 22 } },
-  { id: 12, level: 4, grade: "B", score: 120, title: "最终防线",       body: "通关时目标生命值为 1，护盾值为 0" },
-  { id: 13, level: 4, grade: "B", score: 120, title: "心急如焚",       body: "全程使用二倍速", tracker: { type: "failure", label: "倍速违规状态" } },
+  { id: 8,  level: 4, grade: "B", score: 120, title: "礼帽",           body: "不在商店中选择选项“请坎诺特降价”", tracker: { type: "failure", label: "违规状态" } },
+  { id: 9,  level: 4, grade: "B", score: 120, title: "完美主义",       body: "全程完美作战（最终关卡除外）", plated: "全程没有在关卡内让目标生命值降低过", tracker: { type: "failure", label: "完美作战状态" } },
+  { id: 10,  level: 4, grade: "B", score: 120, title: "最是人间留不住", body: "至少碎过一颗霜晶树" },
+  { id: 11, level: 4, grade: "B", score: 120, title: "单兵计划",       body: "有一名干员同时拥有三种招募增益藏品的效果", plated: "有一名干员同时拥有四种招募增益藏品的效果" },
+  { id: 12, level: 4, grade: "B", score: 120, title: "不积跬步",       body: "探索过黑流树海中的至少 20 种不同类型节点", plated: "探索过黑流树海中的全部 22 种不同类型节点", tracker: { type: "checklist", label: "节点探索记录", options: BLACKFLOW_NODE_TYPES, target: 20, platedTarget: 22 } },
+  { id: 13, level: 4, grade: "B", score: 120, title: "最终防线",       body: "通关时目标生命值为 1，护盾值为 0" },
+  { id: 14, level: 4, grade: "B", score: 120, title: "心急如焚",       body: "全程使用二倍速", tracker: { type: "failure", label: "倍速违规状态" } },
   
 
   /* ===== 3 级 / C 档 / 80 分（共 9 条） ===== */
@@ -77,8 +77,8 @@ window.BINGO_DATA = [
   /* ===== 2 级 / D 档 / 80 分（共 7 条） ===== */
   { id: 24, level: 2, grade: "D", score: 80, title: "短兵相接",     body: "通关时至少携带 7 位六星先锋/近卫/重装/特种" },
   { id: 25, level: 2, grade: "D", score: 80, title: "远程打击",     body: "通关时至少携带 7 位六星狙击/术士/医疗/辅助" },
-  { id: 26, level: 2, grade: "D", score: 80, title: "均衡",         body: "进入第五层时，职业队的本家六星数量不多于3（不包括机械师）" },
-  { id: 27, level: 2, grade: "D", score: 80, title: "说好的……呢", body: "职业队的本家六星数量不多于3（不包括机械师）" },
+  { id: 26, level: 2, grade: "D", score: 80, title: "均衡",         body: "每个职业最多只抓取1名六星干员（包括机械师）" },
+  { id: 27, level: 2, grade: "D", score: 80, title: "说好的……呢", body: "进入第五层时，职业队的本家六星数量不多于3（不包括机械师）" },
   { id: 28, level: 2, grade: "D", score: 80, title: "擢升",         body: "通关时，至少拥有 20 名进阶干员" },
   { id: 29, level: 2, grade: "D", score: 80, title: "指引β",       body: "携带沙盘β通关", plated: "同时携带沙盘α、沙盘β通关" },
   { id: 38, level: 2, grade: "D", score: 80, title: "纯净",         body: "通关时，职业队的非本家六星数量不多于1（不包括机械师）" },

@@ -562,6 +562,8 @@ const CELL_COUNT=25,boardEl=document.getElementById('board'),drawBtn=document.ge
 const LEVEL_SCORES = { 1: 50, 2: 80, 3: 80, 4: 120, 5: 200 };
 /* 每条连线分数 */
 const LINE_SCORE = 600;
+/* 镀层状态额外加分 */
+const PLATE_BONUS = 20;
 /* 当前得分与连线数 */
 let currentScore = 0;
 let activeLines = 0;
@@ -680,6 +682,8 @@ function renderBoard(entries){
         // 同步切换右下角小字
         const badge = cell.querySelector('.cell-plate-badge');
         if (badge) badge.textContent = isActive ? '已镀层' : '可镀层';
+        // 已选中的格子切换镀层状态时同步刷新分数
+        if(cell.classList.contains('selected')) updateScore();
         playSound('paper',.05);
       },{passive:false});
     }
@@ -719,6 +723,10 @@ function updateScore(){
   boardEl.querySelectorAll('.cell.selected').forEach(function(cell){
     const lv=parseInt(cell.dataset.level,10)||1;
     baseScore+=LEVEL_SCORES[lv]||0;
+    // 处于镀层状态的选中格子额外 +20 分
+    if(cell.classList.contains('plate-active')){
+      baseScore+=PLATE_BONUS;
+    }
   });
   currentScore=baseScore+activeLines*LINE_SCORE;
   const overlay=document.getElementById('totalScoreOverlay');

@@ -9,12 +9,18 @@
  *   title  : 标题
  *   body   : 正文条件（可留空）
  *   plated : 镀层条件（可选，不写就没有镀层效果）
- *   tracker: 记录终端配置（可选）
+ *   tracker: 记录终端配置（可选，单个终端）
+ *   trackers: 记录终端配置数组（可选，一个词条挂多个终端时用它）
  *
- * tracker 可选配置：
- *   counter   数量记录器（target / platedTarget）
+ * tracker / trackers 里每一项的可选配置：
+ *   counter   数量记录器（target / platedTarget / drivePlate）
  *   checklist 多选清单（options / target / platedTarget）
  *   failure   失败标记
+ *
+ *   镀层判定：除 drivePlate 之外的计数类终端都达标 -> 完成；
+ *             完成且所有镀层条件满足 -> 镀层。
+ *             drivePlate: true 表示「该终端达到 target」本身就是镀层条件
+ *             （用于完成与镀层由不同终端决定的词条，例如「隐秘藏品」）。
  *
  * 添加新词条示例：
  * { id: 99, level: 3, grade: "C", score: 80, title: "词条标题", body: "完成条件", plated: "镀层条件" },
@@ -56,7 +62,7 @@ window.BINGO_DATA = [
   /* ===== 4 级 / B 档 / 120 分（共 8 条） ===== */
   { id: 7,  level: 4, grade: "B", score: 120, title: "礼帽",           body: "不在商店中选择选项“请坎诺特降价”", tracker: { type: "failure", label: "违规状态" } },
   { id: 8,  level: 4, grade: "B", score: 120, title: "完美主义",       body: "全程完美作战（最终关卡除外）", plated: "全程没有在关卡内让目标生命值降低过", tracker: { type: "failure", label: "完美作战状态" } },
-  { id: 9,  level: 4, grade: "B", score: 120, title: "最是人间留不住", body: "至少碎过一颗霜星树" },
+  { id: 9,  level: 4, grade: "B", score: 120, title: "最是人间留不住", body: "至少碎过一颗霜晶树" },
   { id: 10, level: 4, grade: "B", score: 120, title: "单兵计划",       body: "有一名干员同时拥有三种招募增益藏品的效果", plated: "有一名干员同时拥有四种招募增益藏品的效果" },
   { id: 11, level: 4, grade: "B", score: 120, title: "不积跬步",       body: "探索过黑流树海中的至少 20 种不同类型节点", plated: "探索过黑流树海中的全部 22 种不同类型节点", tracker: { type: "checklist", label: "节点探索记录", options: BLACKFLOW_NODE_TYPES, target: 20, platedTarget: 22 } },
   { id: 12, level: 4, grade: "B", score: 120, title: "最终防线",       body: "通关时目标生命值为 1，护盾值为 0" },
@@ -89,7 +95,11 @@ window.BINGO_DATA = [
   { id: 32, level: 1, grade: "E", score: 50, title: "深不见底", body: "至少使 25 名敌人入坑", tracker: { type: "counter", label: "已入坑人数", unit: "名", target: 25, min: 0 } },
   { id: 33, level: 1, grade: "E", score: 50, title: "动物学家", body: "获得过所有概念体", tracker: { type: "checklist", label: "概念体图鉴", options: BLACKFLOW_CONCEPTS, target: 6 } },
   { id: 34, level: 1, grade: "E", score: 50, title: "基石",     body: "通关时，携带干员夜刀、黑角" },
-  { id: 35, level: 1, grade: "E", score: 50, title: "隐秘藏品", body: "成功收集见到的所有宝箱", plated: "至少有 5 名干员被刺箱/怪箱击倒", tracker: { type: "checklist", label: "宝箱收集记录", options: BLACKFLOW_CHESTS, target: 4 } },
+  { id: 35, level: 1, grade: "E", score: 50, title: "隐秘藏品", body: "成功收集所有类型的宝箱", plated: "至少有 5 名干员被刺箱/怪箱击倒", trackers: [
+    { type: "checklist", label: "宝箱收集记录", options: BLACKFLOW_CHESTS, target: 4 },
+    /* 完成看宝箱、镀层看击倒数：drivePlate 让这条计数只参与镀层判定 */
+    { type: "counter", label: "击倒干员计数", unit: "名", target: 5, min: 0, drivePlate: true }
+  ] },
   { id: 36, level: 1, grade: "E", score: 50, title: "指引α",   body: "携带沙盘α通关", plated: "同时携带沙盘α、沙盘β通关" },
   { id: 37, level: 1, grade: "E", score: 50, title: "贪心",     body: "每次进入得偿所愿时，若可以花 4 源石锭刷新，则必须选择刷新选项", tracker: { type: "failure", label: "违规状态" } }
 
@@ -109,3 +119,15 @@ window.BINGO_F_DATA = [
   { id: "F08", grade: "F", coefficient: 0.05, title: "野蛮退化？",   body: "全程不消除理想源" },
   { id: "F09", grade: "F", coefficient: 0.05, title: "孤岛？",       body: "在整局游戏中，不使用除阿米娅之外的任何医疗干员" }
 ];
+
+/* ============================================================
+   抽取规则
+
+   always : 这些 id 必定出现在棋盘上，占用它自己等级的格子。
+            必须能在上面的数据里找到，否则会被忽略。
+   ============================================================ */
+window.BINGO_DRAW_RULES = {
+  /* 奇美拉（5 级）、礼帽（4 级）、登峰造极（3 级）
+     以及指引α（1 级）、指引β（2 级）均必定出现 */
+  always: [1, 7, 15, 36, 29]
+};

@@ -1912,9 +1912,166 @@ button { font: inherit; }
   .boot__logo, .boot__readout { opacity: 1; filter: none; }
   .site { transform: none; }
 }
+
+/* ============================================================
+   F 级：实托邦不规则半透明边框（静态）
+   ============================================================ */
+.f-tier {
+  isolation: isolate;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.f-tier::after {
+  display: none;
+}
+
+.f-tier::before {
+  opacity: .42;
+}
+
+.f-tier .terminal-heading {
+  background: transparent;
+  border-bottom-color: rgba(221, 229, 223, .14);
+}
+
+.f-card {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.f-card:hover,
+.f-card:focus-visible,
+.f-card.selected {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.f-card .organic-frame {
+  position: absolute;
+  z-index: 0;
+  inset: 5px 4px;
+  pointer-events: none;
+  border: 1.5px solid rgba(234, 239, 235, .38);
+  border-radius: 24px 39px 25px 35px / 34px 21px 39px 24px;
+  background:
+    radial-gradient(ellipse at 24% 18%, rgba(240, 244, 240, .055), transparent 43%),
+    radial-gradient(ellipse at 77% 85%, rgba(121, 20, 47, .11), transparent 56%),
+    rgba(5, 12, 11, .16);
+  box-shadow:
+    inset 0 0 14px rgba(237, 241, 237, .035),
+    0 0 9px rgba(231, 238, 233, .07);
+  filter: url(#organicEdge) drop-shadow(0 0 4px rgba(235, 241, 236, .15));
+  opacity: .7;
+}
+
+.f-card:hover .organic-frame,
+.f-card:focus-visible .organic-frame,
+.f-card.selected .organic-frame {
+  border-color: rgba(249, 250, 245, .72);
+  background:
+    radial-gradient(ellipse at 25% 18%, rgba(244, 246, 241, .1), transparent 44%),
+    radial-gradient(ellipse at 75% 84%, rgba(158, 21, 51, .21), transparent 58%),
+    rgba(8, 13, 12, .2);
+  filter: url(#organicEdge) drop-shadow(0 0 8px rgba(243, 246, 241, .24));
+  opacity: .9;
+}
+
+.f-card.selected .organic-frame {
+  border-color: rgba(250, 241, 218, .84);
+  box-shadow:
+    inset 0 0 18px rgba(159, 18, 49, .18),
+    0 0 15px rgba(235, 230, 216, .13);
+}
+
+.f-card-face {
+  z-index: 1;
+}
+.f-card::before,
+.f-card::after {
+  z-index: 2;
+}
+/* 额外积分：半透明背景 */
+.extra-score:not(.settlement-panel) {
+  background: linear-gradient(115deg, rgba(9, 22, 19, .38), rgba(3, 8, 7, .46));
+  box-shadow: 0 14px 38px rgba(0, 0, 0, .25), inset 0 1px rgba(225, 215, 184, .06);
+}
+.extra-score:not(.settlement-panel) .score-card {
+  background: rgba(3, 10, 8, .26);
+}
+/* ============================================================
+   黑流树海结算视觉：仅覆盖结算与总分区域
+   ============================================================ */
+.settlement-panel{--result-cyan:#26b8aa;--result-white:#e9ece8;--result-ash:#777b78;isolation:isolate;overflow:visible;border:0;background:transparent;box-shadow:none;clip-path:none}
+.settlement-panel::before{right:0;height:1px;background:linear-gradient(90deg,rgba(224,228,222,.72),rgba(224,228,222,.14) 72%,transparent)}
+.settlement-panel::after{display:none}
+.settlement-panel .terminal-heading,.settlement-panel .score-inputs{position:relative;z-index:1}
+.settlement-panel .terminal-heading{align-items:center;padding:18px 24px 15px;border-bottom-color:rgba(220,224,218,.24);background:transparent}
+.settlement-panel .terminal-heading strong{color:var(--result-white);font-size:19px;font-weight:700;letter-spacing:.22em;text-shadow:0 2px 10px #000}
+.settlement-panel .terminal-heading span{color:rgba(204,211,205,.5);font-size:9px}
+.settlement-panel .score-inputs{padding:0}
+.settlement-card{position:relative;min-height:210px;padding:28px 42px 26px 122px;border:0;background:transparent}
+.settlement-card::before{content:"《";position:absolute;left:30px;top:50%;color:rgba(148,153,149,.22);font:900 72px/1 "Arial Narrow",sans-serif;letter-spacing:-.32em;transform:translateY(-52%) scaleX(.72);text-shadow:0 0 28px rgba(0,0,0,.85)}
+.settlement-card h3{margin-bottom:7px;color:var(--result-white);font-size:16px;font-weight:600;letter-spacing:.14em}
+.settlement-card>p{max-width:820px;color:rgba(194,201,196,.55)}
+.settlement-card .recruit-inputs{gap:0;margin-top:22px;border-top:1px solid rgba(219,223,217,.16);border-bottom:1px solid rgba(219,223,217,.16)}
+.settlement-card .score-field{position:relative;min-height:82px;padding:15px 24px 12px}
+.settlement-card .score-field+.score-field{border-left:1px solid rgba(219,223,217,.13)}
+.settlement-card .score-field span{color:rgba(231,235,230,.78);font-size:12px;font-weight:600;letter-spacing:.09em}
+.settlement-card .score-field>input{height:40px;padding:0;border:0;color:var(--result-ash);background:transparent;box-shadow:none;text-align:left;font-size:34px;font-weight:500;letter-spacing:-.02em}
+.settlement-card .score-field>input:focus{color:var(--result-white);border:0;box-shadow:none;text-shadow:0 0 16px rgba(38,184,170,.2)}
+.settlement-card .score-field::after{content:"";position:absolute;left:24px;right:24px;bottom:8px;height:2px;background:linear-gradient(90deg,rgba(38,184,170,.72),rgba(38,184,170,.08));transform:scaleX(.18);transform-origin:left;transition:transform .28s ease}
+.settlement-card .score-field:focus-within::after{transform:scaleX(1)}
+.settlement-card .settle-hint{display:inline-flex;align-items:center;min-height:34px;margin:18px 0 0;padding:7px 20px;border-radius:999px;color:rgba(239,241,237,.82);background:linear-gradient(90deg,rgba(48,8,21,.9),rgba(80,81,79,.72));box-shadow:0 0 24px rgba(69,15,31,.24)}
+.settlement-card .settle-hint.invalid{color:#ffd9d2;background:linear-gradient(90deg,rgba(93,14,28,.94),rgba(43,25,28,.8))}
+.score-total{isolation:isolate;overflow:visible;width:min(96vw,1120px);min-height:240px;margin-top:18px;border:0;background:transparent;box-shadow:none}
+.score-total::before{left:5%;right:5%;top:0;height:1px;background:rgba(218,221,216,.52)}
+.score-total::after{display:none}
+.score-total .terminal-heading{position:relative;z-index:2;padding:18px 24px 0;border:0}
+.score-total .terminal-heading strong{color:rgba(237,240,235,.76);font-size:12px}
+.score-total .terminal-heading span{color:rgba(158,166,160,.42);font-size:8px}
+.score-total__body{position:relative;z-index:1;display:grid;grid-template-columns:minmax(130px,1fr) auto minmax(130px,1fr);gap:clamp(22px,5vw,70px);min-height:188px;padding:18px 9% 34px}
+.score-total__body::before{content:"";position:absolute;left:50%;top:-18px;border-left:17px solid transparent;border-right:17px solid transparent;border-top:18px solid rgba(152,156,153,.7);transform:translateX(-50%)}
+.score-total__caption{align-self:center;justify-self:end;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.score-total__caption b{color:#e9ece8;font-size:22px;letter-spacing:.12em}
+.score-total__caption small,.score-total__seal small{color:rgba(182,188,183,.42);font-size:8px;letter-spacing:.22em}
+.score-total__value{align-self:center;color:#27b8aa;font-size:clamp(72px,12vmin,132px);font-weight:400;line-height:.82;letter-spacing:-.045em;text-shadow:0 0 28px rgba(24,191,174,.24)}
+.score-total__seal{align-self:center;justify-self:start;display:grid;padding-left:22px;border-left:1px solid rgba(213,218,212,.18)}
+.score-total__seal i{color:rgba(215,220,215,.48);font-size:9px;font-style:normal;letter-spacing:.2em}
+.score-total__seal b{width:max-content;margin:4px 0 5px;padding:2px 7px;color:#05110f;background:#2ab9aa;font:700 20px/1 "Arial Narrow",sans-serif;letter-spacing:.04em}
+.total-score-top{border-bottom:1px solid rgba(216,220,214,.34);background:linear-gradient(180deg,rgba(1,3,3,.99),rgba(2,5,4,.94) 68%,rgba(2,5,4,0)),url("assets/blackflow/ui/filter_mask.51de81.png") center/cover no-repeat}
+.total-score-top::after{content:"";position:absolute;left:50%;bottom:18%;width:34px;height:1px;background:#29b8aa;box-shadow:0 0 14px rgba(41,184,170,.42);transform:translateX(-50%)}
+.total-score-top__label{color:rgba(230,234,229,.76)}
+.total-score-top__value{color:#29b8aa;font-weight:500;text-shadow:0 0 30px rgba(41,184,170,.34)}
+@media(max-width:700px){
+.settlement-card{min-height:0;padding:22px 16px 20px 58px}.settlement-card::before{left:5px;font-size:48px}
+.settlement-card .recruit-inputs{grid-template-columns:1fr}.settlement-card .score-field{min-height:72px;padding:12px 14px 10px}
+.settlement-card .score-field+.score-field{border-left:0;border-top:1px solid rgba(219,223,217,.13)}
+.settlement-card .score-field::after{left:14px;right:14px}.settlement-panel .terminal-heading{padding:15px 16px 13px}
+.score-total{min-height:210px}.score-total__body{grid-template-columns:1fr auto;gap:14px;min-height:160px;padding:20px 22px 28px}
+.score-total__caption{justify-self:end}.score-total__value{justify-self:start;font-size:clamp(64px,22vw,104px)}.score-total__seal{display:none}
+}
 </style>
 </head>
 <body>
+<svg class="organic-filter-defs" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="organicEdge" x="-28%" y="-32%" width="156%" height="164%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.026 0.06" numOctaves="2" seed="17" result="organicNoise" />
+      <feDisplacementMap in="SourceGraphic" in2="organicNoise" scale="10" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </defs>
+</svg>
 
 <!-- ============================================================
      开场
@@ -2055,13 +2212,13 @@ button { font: inherit; }
     </div>
   </section>
 
-  <section class="extra-score" aria-labelledby="settleTitle">
+  <section class="extra-score settlement-panel" aria-labelledby="settleTitle">
     <div class="terminal-heading">
       <strong id="settleTitle">结算</strong>
       <span>SETTLEMENT / FINAL ADJUSTMENT</span>
     </div>
     <div class="score-inputs score-inputs--wide">
-      <article class="score-card">
+      <article class="score-card settlement-card">
         <h3>结算调整</h3>
         <p>难度 9 时倍率 1.45，难度 10~15 时倍率 1.5。终分 = 原总分 + 0.5 ×（结算分 − 5 × 倍率 × 零件数）。</p>
         <div class="recruit-inputs">
@@ -2074,13 +2231,11 @@ button { font: inherit; }
     </div>
   </section>
 
-  <section class="score-total" aria-labelledby="totalScoreTitle">
-  <div class="terminal-heading">
-    <strong id="totalScoreTitle">总分</strong>
-    <span>TOTAL SCORE / LIVE</span>
-  </div>
+  <section class="score-total" aria-label="最终得分">
   <div class="score-total__body">
+    <span class="score-total__caption"><b>得分!</b><small>FINAL SCORE</small></span>
     <span class="score-total__value" id="totalScoreBottom">0</span>
+    <span class="score-total__seal"><i>BLACKFLOW</i><b>RESULT</b><small>ARCHIVE VERIFIED</small></span>
   </div>
 </section>
 
@@ -3188,7 +3343,11 @@ function renderFTier() {
     backText.textContent = entry.body;
     back.appendChild(backText);
 
-    card.append(front, back);
+    const organicFrame = document.createElement('i');
+    organicFrame.className = 'organic-frame';
+    organicFrame.setAttribute('aria-hidden', 'true');
+
+    card.append(organicFrame, front, back);
 
     card.addEventListener('click', function () {
       const selected = !card.classList.contains('selected');

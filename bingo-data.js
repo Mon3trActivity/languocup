@@ -68,7 +68,7 @@ window.BINGO_DATA = [
   { id: 17, level: 3, grade: "C", score: 80, title: "小苹果",   body: "先锋干员全程不被击倒", tracker: { type: "failure", label: "先锋击倒状态" } },
   { id: 18, level: 3, grade: "C", score: 80, title: "植物学家", body: "获得过至少 10 种自然物", plated: "获得过全部 12 种自然物", tracker: { type: "checklist", label: "自然物图鉴", options: BLACKFLOW_NATURAL_ITEMS, target: 10, platedTarget: 12 } },
   { id: 19, level: 3, grade: "C", score: 80, title: "静默猎手", body: "至少触发 3 次追猎", plated: "至少触发 5 次追猎", tracker: { type: "counter", label: "追猎触发次数", unit: "次", target: 3, platedTarget: 5, min: 0 } },
-  { id: 20, level: 3, grade: "C", score: 80, title: "偷天换日", body: "同时获得藏品“红日冠冕”和“黑夜披肩”" },
+  { id: 20, level: 3, grade: "C", score: 80, title: "偷天换日", body: "同时获得藏品“红日冠冕”和“黑夜披肩”", tracker: { type: "checklist", label: "藏品收集", options: ["红日冠冕", "黑夜披肩"], target: 2 } },
   { id: 21, level: 3, grade: "C", score: 80, title: "空床",     body: "进入最终关卡时，零件箱装载量不高于零件箱容量的 40%（向上取整）", plated: "进入最终关卡时，零件箱为空" },
   { id: 22, level: 3, grade: "C", score: 80, title: "烂果",     body: "出售过一个估价≤16 的恋家果" },
   { id: 23, level: 3, grade: "C", score: 80, title: "鲜蔬",     body: "出售过一个估价≥32 的雾滚草或血蕈" },
@@ -76,14 +76,14 @@ window.BINGO_DATA = [
   /* ===== 2 级 / D 档 / 80 分（共 7 条） ===== */
   { id: 24, level: 2, grade: "D", score: 80, title: "短兵相接",     body: "通关时至少携带 7 位六星先锋/近卫/重装/特种" },
   { id: 25, level: 2, grade: "D", score: 80, title: "远程打击",     body: "通关时至少携带 7 位六星狙击/术士/医疗/辅助" },
-  { id: 26, level: 2, grade: "D", score: 80, title: "均衡",         body: "每个职业最多只抓取 1 名六星干员（包括机械师）" },
+  { id: 26, level: 2, grade: "D", score: 80, title: "均衡",         body: "每个职业最多只抓取 1 名六星干员（包括机械师）", tracker: { type: "failure", label: "违规状态" } },
   { id: 27, level: 2, grade: "D", score: 80, title: "说好的……呢", body: "职业队的本家六星数量不多于3（不包括机械师）" },
   { id: 28, level: 2, grade: "D", score: 80, title: "擢升",         body: "通关时，至少拥有 20 名进阶干员" },
   { id: 29, level: 2, grade: "D", score: 80, title: "指引β",       body: "携带沙盘β通关", plated: "同时携带沙盘α、沙盘β通关" },
-  { id: 38, level: 2, grade: "D", score: 80, title: "纯净",         body: "职业队的非本家六星数量不多于1（不包括机械师）" },
+  { id: 38, level: 2, grade: "D", score: 80, title: "纯净",         body: "职业队的非本家六星数量不多于1（不包括机械师）", tracker: { type: "failure", label: "违规状态" } },
 
   /* ===== 1 级 / E 档 / 50 分（共 8 条） ===== */
-  { id: 30, level: 1, grade: "E", score: 50, title: "随心所欲", body: "在选择招募组合时，使用“随心所欲”策略开局" },
+  { id: 30, level: 1, grade: "E", score: 50, title: "随心所欲", body: "在选择招募组合时，使用“随心所欲”策略开局", tracker: { type: "failure", label: "违规状态" } },
   { id: 31, level: 1, grade: "E", score: 50, title: "本源研习", body: "触发过所有的元素爆发（敌方或我方的均可）", tracker: { type: "checklist", label: "元素爆发记录", options: BLACKFLOW_ELEMENTS, target: 5 } },
   { id: 32, level: 1, grade: "E", score: 50, title: "深不见底", body: "至少使 25 名敌人入坑", tracker: { type: "counter", label: "已入坑人数", unit: "名", target: 25, min: 0 } },
   { id: 33, level: 1, grade: "E", score: 50, title: "动物学家", body: "获得过所有概念体", tracker: { type: "checklist", label: "概念体图鉴", options: BLACKFLOW_CONCEPTS, target: 6 } },

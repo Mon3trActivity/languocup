@@ -1141,6 +1141,102 @@ button { font: inherit; }
   padding: 8px;
 }
 
+/* ============================================================
+   底部总分面板
+   ============================================================ */
+.score-total {
+  position: relative;
+  width: min(96vw, 900px);
+  margin-top: 14px;
+  border: 1px solid rgba(119,176,166,.25);
+  background: linear-gradient(115deg, rgba(9,22,19,.9), rgba(3,8,7,.94));
+  box-shadow: 0 18px 50px rgba(0,0,0,.42), inset 0 1px rgba(225,215,184,.08);
+}
+.score-total::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 38%;
+  top: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, #72d9ce, rgba(218,195,133,.65), transparent);
+}
+.score-total__body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 15px 22px;
+}
+.score-total__value {
+  color: #ffe5a4;
+  font-size: clamp(28px, 6vmin, 56px);
+  font-weight: 500;
+  letter-spacing: .06em;
+  font-family: "Bahnschrift Condensed", "Arial Narrow", sans-serif;
+  text-shadow: 0 0 20px rgba(239,205,124,.28);
+}
+
+/* ============================================================
+   按 S 键：总分定格到页面最上方
+   ============================================================ */
+.total-score-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2.4vmin, 28px);
+  padding: clamp(22px, 4vmin, 52px) 16px clamp(30px, 5vmin, 66px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-14px);
+  background: linear-gradient(180deg,
+    rgba(2,6,5,.97) 0%,
+    rgba(2,6,5,.88) 55%,
+    rgba(2,6,5,0) 100%);
+  transition:
+    opacity .55s ease,
+    transform .55s cubic-bezier(.16,1,.3,1),
+    visibility 0s .55s;
+}
+.total-score-top.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: none;
+  transition:
+    opacity .55s ease,
+    transform .55s cubic-bezier(.16,1,.3,1),
+    visibility 0s;
+}
+.total-score-top__label {
+  color: #79a69d;
+  font-size: clamp(14px, 2.6vmin, 28px);
+  letter-spacing: .3em;
+  font-weight: 500;
+}
+.total-score-top__value {
+  color: #ffe5a4;
+  font-size: clamp(64px, 18vmin, 200px);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -.03em;
+  font-family: "Bahnschrift Condensed", "Arial Narrow", sans-serif;
+  text-shadow:
+    0 0 28px rgba(239,205,124,.38),
+    0 0 60px rgba(114,217,206,.22);
+}
+
+@media (max-width: 700px) {
+  .score-total { margin-top: 12px; }
+  .score-total__body { padding: 14px 12px 18px; }
+  .total-score-top { padding: 18px 12px 26px; }
+}
+
 /* ---------- F 级卡片（悬停翻转） ---------- */
 .f-card {
   position: relative;
@@ -1297,16 +1393,19 @@ button { font: inherit; }
    ============================================================ */
 .cell-tracker-badge {
   position: absolute;
-  right: 5px;
-  bottom: 4px;
+  left: 50%;
+  bottom: 3px;
+  transform: translateX(-50%);
   z-index: 8;
-  padding: 2px 4px;
+  padding: 2px 5px;
   border: 1px solid rgba(114,217,206,.24);
   color: #86c9c0;
   background: rgba(2,8,7,.76);
-  font-size: clamp(6px, .9vmin, 8px);
+  font-size: clamp(6px, .95vmin, 9px);
   line-height: 1;
   letter-spacing: .04em;
+  text-align: center;
+  white-space: nowrap;
   pointer-events: none;
   box-shadow: 0 0 8px rgba(114,217,206,.08);
   transition: .25s ease;
@@ -1571,7 +1670,7 @@ button { font: inherit; }
   color: #fff1c9;
 }
 @media (max-width: 700px) {
-  .cell-tracker-badge { right: 2px; bottom: 2px; padding: 1px 2px; font-size: 6px; }
+  .cell-tracker-badge { padding: 1px 3px; font-size: 6px; bottom: 2px; }
   .tracker-popover { padding: 16px 15px 13px; }
   .tracker-popover h2 { font-size: 18px; }
   .tracker-checklist { grid-template-columns: 1fr; }
@@ -1892,12 +1991,27 @@ button { font: inherit; }
     </div>
   </section>
 
+  <section class="score-total" aria-labelledby="totalScoreTitle">
+  <div class="terminal-heading">
+    <strong id="totalScoreTitle">总分</strong>
+    <span>TOTAL SCORE / LIVE</span>
+  </div>
+  <div class="score-total__body">
+    <span class="score-total__value" id="totalScoreBottom">0</span>
+  </div>
+</section>
+
   <footer class="footer">
     <span>FAN-MADE · PRIVATE NON-COMMERCIAL USE</span>
     <span>BLACKFLOW ARCHIVE // ONLINE</span>
   </footer>
 
 </main>
+
+<div id="totalScoreTop" class="total-score-top" aria-hidden="true">
+  <span class="total-score-top__label">总分</span>
+  <strong class="total-score-top__value" id="totalScoreTopValue">0</strong>
+</div>
 
 <script src="bingo-data.js"></script>
 <script>
@@ -2102,6 +2216,24 @@ function paintTrackerBadge(cell, state, config) {
   cell.classList.toggle('tracker-complete', status.complete);
   cell.classList.toggle('tracker-plated', status.plated);
 }
+/* 计数类追踪器：根据计数自动判定普通完成 / 镀层完成 */
+function applyCounterCompletion(cell, state, config) {
+  if (!config || config.type !== 'counter' && config.type !== 'checklist') return;
+  const amount = trackerAmount(state, config);
+  const reachedTarget = amount >= config.target;
+  const reachedPlated = Boolean(config.platedTarget && amount >= config.platedTarget);
+
+  if (!reachedTarget) {
+    cell.classList.remove('selected');
+    cell.classList.remove('plate-active');
+  } else if (reachedPlated) {
+    cell.classList.add('selected');
+    cell.classList.add('plate-active');
+  } else {
+    cell.classList.add('selected');
+  }
+  updatePlateBadge(cell);
+}
 function targetText(amount, config) {
   if (config.type === 'failure') return amount ? '状态：已失败' : '状态：条件有效';
   if (config.platedTarget && amount >= config.platedTarget) return '镀层记录已达成';
@@ -2135,6 +2267,7 @@ function refreshTrackerPanel(state) {
   }
   boardEl.querySelectorAll('[data-entry-id="' + activeTracker.id + '"]').forEach(function (cell) {
     paintTrackerBadge(cell, state, config);
+    applyCounterCompletion(cell, state, config);
   });
 }
 function saveActiveTracker(state) {
@@ -2147,6 +2280,9 @@ function saveActiveTracker(state) {
 function setActiveCounterValue(value) {
   if (!activeTracker || activeTracker.config.type !== 'counter') return;
   saveActiveTracker({ value: value });
+  updateSelectedCount();
+  checkBingo();
+  updateScore();
 }
 function closeTrackerPanel() {
   if (trackerPopover.hidden) return;
@@ -2355,7 +2491,7 @@ function pickEntries(levels) {
 function updatePlateBadge(cell) {
   const badge = cell.querySelector('.cell-plate-badge');
   if (!badge) return;
-  badge.textContent = cell.classList.contains('plate-active') ? '镀层完成' : '可镀层';
+  badge.textContent = cell.classList.contains('plate-active') ? '已镀层' : '可镀层';
 }
 
 function renderBoard(entries) {
@@ -2407,6 +2543,7 @@ function renderBoard(entries) {
       const trackerBadge = document.createElement('span');
       trackerBadge.className = 'cell-tracker-badge';
       cell.appendChild(trackerBadge);
+      cell.dataset.trackerType = entry.tracker.type;
       paintTrackerBadge(cell, readTrackerState(entry.id, entry.tracker), entry.tracker);
       cell.addEventListener('contextmenu', function (event) {
         event.preventDefault();
@@ -2482,6 +2619,10 @@ function handleCellClick(cell, ev) {
   if (cell.classList.contains('tracker-failed')) {
     playSound('glitch', .055);
     spawnRipple(cell, ev);
+    return;
+  }
+  // 计数类标记：完成状态由计数自动判定，不响应点击
+  if (cell.dataset.trackerType === 'counter' || cell.dataset.trackerType === 'checklist') {
     return;
   }
   playSound('click', .075);
@@ -2584,8 +2725,15 @@ function updateScore() {
   const subtotal = termScore + bingoScore + platedBonus + extraScore;
   const total = subtotal * (1 + coefficient);
 
+  const formatted = formatScore(total);
   const overlay = document.getElementById('totalScoreOverlay');
-  if (overlay) overlay.textContent = formatScore(total);
+  if (overlay) overlay.textContent = formatted;
+
+  const bottom = document.getElementById('totalScoreBottom');
+  if (bottom) bottom.textContent = formatted;
+
+  const topValue = document.getElementById('totalScoreTopValue');
+  if (topValue) topValue.textContent = formatted;
 }
 
 /* ============================================================
@@ -2793,8 +2941,25 @@ function importBoard(file) {
       // 恢复选中 / 滚轮显示状态（失败记录会强制清空选中）
       [...boardEl.children].forEach(function (cell, index) {
         const entry = entries[index];
-        const failed = entry.tracker && entry.tracker.type === 'failure' && readTrackerState(entry.id, entry.tracker).failed;
-        setCellSelected(cell, !failed && flags[index].selected);
+        if (!entry.tracker) {
+          setCellSelected(cell, flags[index].selected);
+          if (flags[index].plateActive) cell.classList.add('plate-active');
+          updatePlateBadge(cell);
+          return;
+        }
+        if (entry.tracker.type === 'counter' || entry.tracker.type === 'checklist') {
+          // 计数类：由计数自动判定完成状态
+          applyCounterCompletion(cell, readTrackerState(entry.id, entry.tracker), entry.tracker);
+          return;
+        }
+        if (entry.tracker.type === 'failure') {
+          const failed = readTrackerState(entry.id, entry.tracker).failed;
+          setCellSelected(cell, !failed && flags[index].selected);
+          if (flags[index].plateActive) cell.classList.add('plate-active');
+          updatePlateBadge(cell);
+          return;
+        }
+        setCellSelected(cell, flags[index].selected);
         if (flags[index].plateActive) cell.classList.add('plate-active');
         updatePlateBadge(cell);
       });
@@ -2874,6 +3039,23 @@ scoreInputs.forEach(function (input) {
 });
 
 renderFTier();
+
+/* ============================================================
+   按 S 键：总分定格到页面最上方 / 再按一次恢复
+   ============================================================ */
+let totalScorePinned = false;
+document.addEventListener('keydown', function (event) {
+  const tag = event.target && event.target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || event.target.isContentEditable) return;
+  if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if (event.key !== 's' && event.key !== 'S') return;
+
+  event.preventDefault();
+  totalScorePinned = !totalScorePinned;
+  document.getElementById('totalScoreTop').classList.toggle('show', totalScorePinned);
+  playSound('modal', .06);
+});
+
 draw();
 </script>
 </body>

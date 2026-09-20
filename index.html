@@ -1761,6 +1761,52 @@ button { font: inherit; }
 }
 
 /* ============================================================
+   种子读取框
+   ============================================================ */
+.seed-row {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  justify-content: center;
+}
+.seed-row input {
+  width: 130px;
+  padding: 4px 8px;
+  border: 1px solid rgba(114,217,206,.35);
+  background: rgba(0,0,0,.35);
+  color: #fff0c8;
+  font: 500 12px/1.2 "Bahnschrift Condensed", "Microsoft YaHei UI", sans-serif;
+  letter-spacing: .1em;
+  outline: 0;
+}
+.seed-row input::placeholder {
+  color: rgba(139,164,156,.55);
+  letter-spacing: .04em;
+}
+.seed-row input:focus {
+  border-color: #d5bf80;
+  box-shadow: 0 0 10px rgba(114,217,206,.25);
+}
+.seed-row button {
+  padding: 4px 10px;
+  border: 1px solid rgba(114,217,206,.35);
+  color: #bcd4cb;
+  background: rgba(23,54,48,.54);
+  cursor: pointer;
+  font-size: 10px;
+  letter-spacing: .14em;
+  transition: .2s;
+}
+.seed-row button:hover {
+  border-color: #d8c58c;
+  color: #fff1c9;
+}
+@media (max-width: 700px) {
+  .seed-row input { width: 100px; font-size: 11px; }
+  .seed-row { margin-top: 4px; }
+}
+
+/* ============================================================
    响应式
    ============================================================ */
 @media (max-width: 700px) {
@@ -2176,7 +2222,13 @@ button { font: inherit; }
   <section class="controls" aria-label="宾果控制">
     <div class="meter"><strong id="selectedCount">00 / 25</strong>OBSERVED NODES</div>
     <button id="drawBtn" class="draw-btn" type="button">随机抽取</button>
-    <div class="meter meter--right"><strong id="archiveId">BF-0000</strong>ARCHIVE SEED</div>
+    <div class="meter meter--right">
+      <strong id="archiveId">BF-0000</strong>ARCHIVE SEED
+      <div class="seed-row">
+        <input id="seedInput" type="text" maxlength="25" placeholder="输入种子" autocomplete="off" spellcheck="false" />
+        <button id="seedApplyBtn" type="button">读取</button>
+      </div>
+    </div>
   </section>
 
   <section class="f-tier" aria-labelledby="fTierTitle">
@@ -2581,6 +2633,7 @@ function saveTrackerState(index, raw, opts) {
     checkBingo();
     updateScore();
   }
+  scheduleSave();
 }
 function closeTrackerPanel() {
   if (trackerPopover.hidden) return;
@@ -3021,6 +3074,7 @@ function renderBoard(entries) {
         updatePlateBadge(cell);
         if (cell.classList.contains('selected')) updateScore();
         playSound('paper', .05);
+        scheduleSave();
       }, { passive: false });
     }
 
@@ -3055,6 +3109,7 @@ function setCellSelected(cell, selected) {
   cell.classList.toggle('selected', selected);
   cell.setAttribute('aria-pressed', String(selected));
   updatePlateBadge(cell);
+  scheduleSave();
 }
 
 function handleCellClick(cell, ev) {
@@ -3365,12 +3420,108 @@ function renderFTier() {
 
       updateScore();
       playSound('click', .065);
+      scheduleSave();
     });
 
     frag.appendChild(card);
   });
 
   fTierGrid.replaceChildren(frag);
+}
+
+/* ============================================================
+   随机种子：编码 / 解码 / 重建
+   ------------------------------------------------------------
+   编码规则（与 draw 保持一致）：
+     每个位置写入一个字符，代表该格词条的 id。
+       id 1~26   -> 'A'~'Z'
+       id >= 27  -> charCode = id + 70
+       无词条(id=-1) -> '?'
+   ============================================================ */
+function encodeId(id) {
+  const n = Number(id);
+  if (!Number.isFinite(n) || n < 0) return '?';
+  let code = n + 64;
+  if (code > 90) code += 6;
+  return String.fromCharCode(code);
+}
+
+function makeSeed(entries) {
+  let seed = '';
+  for (let i = 0; i < entries.length; i++) {
+    seed += encodeId(entries[i].id);
+  }
+  return seed;
+}
+
+/* 把种子字符串解析成 id 数组；格式不合法返回 null */
+function decodeSeed(seed) {
+  if (!seed || typeof seed !== 'string') return null;
+  if (seed.length !== CELL_COUNT) return null;
+  const ids = [];
+  for (let i = 0; i < seed.length; i++) {
+    const ch = seed.charAt(i);
+    const code = ch.charCodeAt(0);
+    if (ch === '?') { ids.push(-1); continue; }
+    if (code >= 65 && code <= 90)  { ids.push(code - 64); continue; }
+    if (code >= 97 && code <= 122) { ids.push(code - 70); continue; }
+    return null;
+  }
+  return ids;
+}
+
+/* 按种子还原一整套词条；找不到 id 的格用占位符 */
+function pickEntriesFromSeed(seed) {
+  const ids = decodeSeed(seed);
+  if (!ids) return null;
+
+  const byId = new Map();
+  BINGO_DATA.forEach(function (x) {
+    if (!x || typeof x.title !== 'string' || !x.title.trim()) return;
+    byId.set(x.id, x);
+  });
+
+  return ids.map(function (id, i) {
+    const level = LEVEL_MAP[i] || 1;
+    const src = byId.get(id);
+    if (!src) {
+      return { id: -1, title: '？', body: '', plated: '', level: level, trackers: [] };
+    }
+    return {
+      id: src.id,
+      title: src.title.trim(),
+      body: (src.body || '').trim(),
+      plated: (src.plated || '').trim(),
+      trackers: normalizeTrackers(src),
+      level: Number(src.level) || level
+    };
+  });
+}
+
+/* 用指定种子重建整张表，成功返回 true */
+function drawFromSeed(seed) {
+  const entries = pickEntriesFromSeed(seed);
+  if (!entries) return false;
+
+  closeTrackerPanel();
+  trackerSession.clear();
+
+  playSound('glitch', .07);
+  const frame = document.querySelector('.board-frame');
+  frame.classList.remove('drawing');
+  void frame.offsetWidth;
+  frame.classList.add('drawing');
+  setTimeout(function () { frame.classList.remove('drawing'); }, 780);
+
+  renderBoard(entries);
+  document.getElementById('bingoLines').replaceChildren();
+  updateSelectedCount();
+
+  activeLines = 0;
+  document.getElementById('archiveId').textContent = seed;
+  updateScore();
+  scheduleSave();
+  return true;
 }
 
 /* ============================================================
@@ -3388,22 +3539,16 @@ function draw() {
   setTimeout(function () { frame.classList.remove('drawing'); }, 780);
 
   const entries = pickEntries(LEVEL_MAP);
-  console.log(entries);
   renderBoard(entries);
   document.getElementById('bingoLines').replaceChildren();
   updateSelectedCount();
 
   activeLines = 0;
-  updateScore();
 
-  let seed = '';
-  for (i in entries) {
-    let code = entries[i].id + 64;
-    if (code > 90) code += 6;
-    seed += String.fromCharCode(code);
-  }
-  console.log(seed);
+  const seed = makeSeed(entries);
   document.getElementById('archiveId').textContent = seed;
+  updateScore();
+  scheduleSave();
 }
 
 /* ============================================================
@@ -3589,9 +3734,9 @@ function importBoard(file) {
       // 恢复额外积分输入
       if (raw && raw.extras && typeof raw.extras === 'object') {
         scoreInputs.concat(settlementInputs).forEach(function (input) {
-          if (input && Object.prototype.hasOwnProperty.call(raw.extras, input.id)) {
-            input.value = String(raw.extras[input.id]);
-          }
+          if (!input) return;
+          input.addEventListener('input', function () { updateScore(); scheduleSave(); });
+          input.addEventListener('change', function () { updateScore(); scheduleSave(); });
         });
       }
       scoreInputs.forEach(normalizedScoreInput);
@@ -3609,12 +3754,199 @@ function importBoard(file) {
       document.getElementById('detailPlate').style.display = 'none';
 
       playSound('modal', .08);
+      scheduleSave();
     } catch (error) {
       alert('导入失败：' + error.message);
     }
   };
   reader.onerror = function () { alert('导入失败：无法读取文件'); };
   reader.readAsText(file);
+}
+
+/* ============================================================
+   Cookie 状态保存 / 恢复
+   ------------------------------------------------------------
+   保存内容：
+     - seed      : 当前种子（用于重建整张表格）
+     - cells     : 25 格 × 2 位（selected / plateActive），紧凑字符串
+     - trackers  : 各词条终端的状态数组
+     - fSelected : F 级勾选
+     - extras    : 额外积分 + 结算三个输入框
+   ============================================================ */
+const COOKIE_NAME = 'bingoState';
+const COOKIE_MAX_AGE = 30 * 24 * 60 * 60; /* 30 天 */
+const COOKIE_SIZE_LIMIT = 3800;           /* 4KB 上限，留点余量 */
+
+let saveDebounceTimer = null;
+
+/* 防抖：连续变化只在停下后写一次 cookie */
+function scheduleSave() {
+  if (saveDebounceTimer) clearTimeout(saveDebounceTimer);
+  saveDebounceTimer = setTimeout(saveCookieState, 600);
+}
+
+function saveCookieState() {
+  try {
+    if (!boardEl.children.length) return;
+
+    /* 每格 2 位：第 1 位选中，第 2 位镀层显示 */
+    let cellBits = '';
+    [...boardEl.children].forEach(function (cell) {
+      cellBits += (cell.classList.contains('selected') ? '1' : '0')
+                + (cell.classList.contains('plate-active') ? '1' : '0');
+    });
+
+    /* 终端状态：按当前盘面里的每个词条，逐个终端存 */
+    const trackers = {};
+    currentEntries.forEach(function (entry) {
+      const configs = (entry && entry.trackers) || [];
+      if (!configs.length) return;
+      const arr = configs.map(function (config, index) {
+        const s = trackerSession.get(trackerKey(entry.id, index));
+        return s === undefined ? null : s;
+      });
+      if (arr.some(function (s) { return s !== null; })) {
+        trackers[String(entry.id)] = arr;
+      }
+    });
+
+    const fSel = [...fTierGrid.querySelectorAll('.f-card.selected')]
+      .map(function (c) { return c.dataset.id; });
+
+    const extras = {};
+    scoreInputs.concat(settlementInputs).forEach(function (input) {
+      if (input) extras[input.id] = input.value;
+    });
+
+    const data = {
+      v: 3,
+      seed: document.getElementById('archiveId').textContent,
+      cells: cellBits,
+      trackers: trackers,
+      fSelected: fSel,
+      extras: extras
+    };
+
+    const json = JSON.stringify(data);
+    if (json.length > COOKIE_SIZE_LIMIT) {
+      console.warn('[cookie] 状态过大，跳过保存');
+      return;
+    }
+
+    document.cookie = COOKIE_NAME + '=' + encodeURIComponent(json)
+      + ';path=/;max-age=' + COOKIE_MAX_AGE + ';SameSite=Lax';
+  } catch (err) {
+    /* cookie 被禁用等异常，静默忽略 */
+  }
+}
+
+function loadCookieState() {
+  try {
+    const match = document.cookie.match(new RegExp('(?:^|;\\s*)' + COOKIE_NAME + '=([^;]*)'));
+    if (!match) return null;
+    return JSON.parse(decodeURIComponent(match[1]));
+  } catch (err) {
+    return null;
+  }
+}
+
+/* 从 cookie 恢复整张表；成功返回 true */
+function restoreFromCookie() {
+  const data = loadCookieState();
+  if (!data || !data.seed) return false;
+
+  const entries = pickEntriesFromSeed(data.seed);
+  if (!entries) return false;
+
+  /* 1. 先把终端状态灌进 session，再 renderBoard，
+        这样 applyTrackerCompletion 会算出正确的完成 / 镀层 */
+  trackerSession.clear();
+  if (data.trackers && typeof data.trackers === 'object') {
+    entries.forEach(function (entry) {
+      const configs = entry.trackers || [];
+      if (!configs.length) return;
+      const saved = data.trackers[String(entry.id)];
+      if (!saved) return;
+      const list = Array.isArray(saved) ? saved : [saved];
+      configs.forEach(function (config, idx) {
+        if (idx >= list.length || list[idx] === null || list[idx] === undefined) return;
+        trackerSession.set(trackerKey(entry.id, idx), normalizeTrackerState(list[idx], config));
+      });
+    });
+  }
+
+  renderBoard(entries);
+
+  /* 2. 恢复手动选中 / 镀层（有计数类终端的格子由终端决定，不覆盖） */
+  if (typeof data.cells === 'string' && data.cells.length === CELL_COUNT * 2) {
+    [...boardEl.children].forEach(function (cell, i) {
+      const entry = entries[i];
+      const configs = entry.trackers || [];
+      if (configs.some(function (c) { return c.type === 'counter' || c.type === 'checklist'; })) return;
+
+      const hasFailure = configs.some(function (c) { return c.type === 'failure'; });
+      const failed = hasFailure && configs.some(function (config, idx) {
+        return config.type === 'failure' && readEntryTrackerState(entry, idx).failed;
+      });
+
+      const sel = data.cells.charAt(i * 2) === '1' && !failed;
+      const pa  = data.cells.charAt(i * 2 + 1) === '1';
+      setCellSelected(cell, sel);
+      if (pa) cell.classList.add('plate-active');
+      updatePlateBadge(cell);
+    });
+  }
+
+  /* 3. F 级勾选 */
+  if (Array.isArray(data.fSelected)) {
+    const selSet = new Set(data.fSelected.map(String));
+    fTierGrid.querySelectorAll('.f-card').forEach(function (card) {
+      const on = selSet.has(card.dataset.id);
+      card.classList.toggle('selected', on);
+      card.setAttribute('aria-pressed', String(on));
+    });
+  }
+  const fCount = fTierGrid.querySelectorAll('.f-card.selected').length;
+  document.getElementById('fTierStatus').textContent = fCount
+    ? '已完成 ' + fCount + ' / ' + BINGO_F_DATA.length + ' · 当前系数 +' + (fCount * .05).toFixed(2)
+    : '每完成一项，最终得分系数 +0.05';
+
+  /* 4. 额外积分 / 结算 */
+  if (data.extras && typeof data.extras === 'object') {
+    scoreInputs.concat(settlementInputs).forEach(function (input) {
+      if (!input) return;
+      if (Object.prototype.hasOwnProperty.call(data.extras, input.id)) {
+        input.value = String(data.extras[input.id]);
+      }
+    });
+  }
+  scoreInputs.forEach(normalizedScoreInput);
+
+  document.getElementById('archiveId').textContent = data.seed;
+  document.getElementById('bingoLines').replaceChildren();
+  updateSelectedCount();
+  checkBingo();
+  updateScore();
+
+  return true;
+}
+
+/* ============================================================
+   种子读取框
+   ============================================================ */
+function applySeedInput() {
+  const input = document.getElementById('seedInput');
+  const seed = input.value.trim();
+  if (!seed) { input.focus(); return; }
+  if (seed.length !== CELL_COUNT) {
+    alert('种子需要 ' + CELL_COUNT + ' 个字符，当前 ' + seed.length + ' 个');
+    return;
+  }
+  if (!drawFromSeed(seed)) {
+    alert('无法识别该种子，请确认字符是否完整');
+    return;
+  }
+  input.blur();
 }
 
 /* ============================================================
@@ -3653,6 +3985,17 @@ setupScoreSteppers();
 renderFTier();
 
 /* ============================================================
+   种子读取框绑定
+   ============================================================ */
+document.getElementById('seedApplyBtn').addEventListener('click', applySeedInput);
+document.getElementById('seedInput').addEventListener('keydown', function (event) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    applySeedInput();
+  }
+});
+
+/* ============================================================
    按 S 键：总分定格到页面最上方 / 再按一次恢复
    ============================================================ */
 let totalScorePinned = false;
@@ -3668,7 +4011,20 @@ document.addEventListener('keydown', function (event) {
   playSound('modal', .06);
 });
 
-draw();
+/* 页面卸载前同步写一次，避免防抖还没触发就刷新导致丢记录 */
+window.addEventListener('beforeunload', function () {
+  if (saveDebounceTimer) clearTimeout(saveDebounceTimer);
+  saveCookieState();
+});
+
+/* ============================================================
+   初始化
+   ------------------------------------------------------------
+   优先从 cookie 恢复；没有可用存档才随机抽一张新表。
+   ============================================================ */
+if (!restoreFromCookie()) {
+  draw();
+}
 </script>
 </body>
 </html>
